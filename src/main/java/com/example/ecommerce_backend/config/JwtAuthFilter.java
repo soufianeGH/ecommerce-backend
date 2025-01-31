@@ -41,7 +41,7 @@ public class JwtAuthFilter extends GenericFilter {
         // Extract Authorization header
         String authHeader = httpReq.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("❌ Missing or invalid Authorization header.");
+            System.out.println(" Missing or invalid Authorization header.");
             chain.doFilter(request, response);
             return;
         }
@@ -50,22 +50,22 @@ public class JwtAuthFilter extends GenericFilter {
         try {
             String email = jwtUtil.validateToken(token);
             if (email == null) {
-                System.out.println("❌ Invalid token: " + token);
+                System.out.println("Invalid token: " + token);
                 chain.doFilter(request, response);
                 return;
             }
 
-            System.out.println("✅ Authenticated user: " + email);
+            System.out.println("Authenticated user: " + email);
 
-            // ✅ Set Authentication in SecurityContextHolder
+            // Set Authentication in SecurityContextHolder
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
 
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpReq));
-            SecurityContextHolder.getContext().setAuthentication(authentication); // ✅ Set user in security context
+            SecurityContextHolder.getContext().setAuthentication(authentication); // Set user in security context
 
         } catch (Exception e) {
-            System.out.println("❌ JWT validation failed: " + e.getMessage());
+            System.out.println("JWT validation failed: " + e.getMessage());
         }
 
         chain.doFilter(request, response);

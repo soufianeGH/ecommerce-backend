@@ -31,7 +31,7 @@ public class JwtUtil {
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
-                .claim("role", "USER")  // ✅ Explicitly setting role
+                .claim("role", "USER")  // Explicitly setting role
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -41,11 +41,11 @@ public class JwtUtil {
     public String validateToken(String token) {
         try {
             if (token == null || token.trim().isEmpty()) {
-                System.out.println("❌ JWT token is missing or empty.");
+                System.out.println("JWT token is missing or empty.");
                 return null;
             }
 
-            System.out.println("🔍 Validating Token: [" + token + "]");
+            System.out.println("Validating Token: [" + token + "]");
 
             Jwts.parserBuilder()
                     .setSigningKey(key)
@@ -54,13 +54,13 @@ public class JwtUtil {
 
             return getEmailFromToken(token);
         } catch (JwtException e) {
-            System.out.println("❌ JWT Validation Failed: " + e.getMessage());
+            System.out.println("JWT Validation Failed: " + e.getMessage());
             return null;
         }
     }
 
     public String getEmailFromToken(String token) {
-        System.out.println("🔍 Received token: " + token);
+        System.out.println("Received token: " + token);
 
         try {
             Claims claims = Jwts.parserBuilder()
@@ -69,12 +69,12 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
 
-            System.out.println("✅ Extracted Claims: " + claims);
-            System.out.println("🔍 User Role: " + claims.get("role"));  // ✅ Log role
+            System.out.println("Extracted Claims: " + claims);
+            System.out.println("User Role: " + claims.get("role"));  // Log role
 
             return claims.getSubject();
         } catch (JwtException e) {
-            System.out.println("❌ JWT Parsing Failed: " + e.getMessage());
+            System.out.println("JWT Parsing Failed: " + e.getMessage());
             return null;
         }
     }
@@ -87,15 +87,15 @@ public class JwtUtil {
      */
     public String extractEmailFromHeader(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("❌ Missing or invalid Authorization header.");
+            throw new RuntimeException("Missing or invalid Authorization header.");
         }
 
-        String token = authHeader.substring(7).trim(); // ✅ Remove "Bearer " and trim spaces
-        System.out.println("🔍 Extracted Token: [" + token + "]");
+        String token = authHeader.substring(7).trim(); // Remove "Bearer " and trim spaces
+        System.out.println("Extracted Token: [" + token + "]");
 
         String email = validateToken(token);
         if (email == null) {
-            throw new RuntimeException("❌ Invalid JWT token.");
+            throw new RuntimeException("Invalid JWT token.");
         }
         return email;
     }

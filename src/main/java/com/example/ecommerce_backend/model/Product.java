@@ -1,5 +1,6 @@
 package com.example.ecommerce_backend.model;
 
+import com.example.ecommerce_backend.enums.InventoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -42,7 +43,5 @@ public class Product {
         this.updatedAt = System.currentTimeMillis();
     }
 
-    public enum InventoryStatus {
-        INSTOCK, LOWSTOCK, OUTOFSTOCK
-    }
+
 }

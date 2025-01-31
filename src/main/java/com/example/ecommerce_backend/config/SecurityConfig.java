@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/account", "/token").permitAll()  // Allow registration and login
                         .requestMatchers("/h2-console/**").permitAll()      // Allow H2 Console
-                        .requestMatchers("/products/**").authenticated()    // ✅ Ensure only authenticated users can access products
+                        .requestMatchers("/products/**").authenticated()    // Ensure only authenticated users can access products
                         .anyRequest().authenticated()                      // Require authentication for all other endpoints
                 )
                 .addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
