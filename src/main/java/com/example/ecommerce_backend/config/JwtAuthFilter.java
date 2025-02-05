@@ -1,18 +1,20 @@
 package com.example.ecommerce_backend.config;
 
 import com.example.ecommerce_backend.util.JwtUtil;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.Collections;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
-public class JwtAuthFilter extends GenericFilter {
+public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
@@ -21,53 +23,34 @@ public class JwtAuthFilter extends GenericFilter {
     }
 
     @Override
-    public void doFilter(
-            ServletRequest request,
-            ServletResponse response,
-            FilterChain chain
-    ) throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
 
-        HttpServletRequest httpReq = (HttpServletRequest) request;
-        HttpServletResponse httpRes = (HttpServletResponse) response;
-
-        String path = httpReq.getRequestURI();
-
-        // Skip token validation for login/signup
-        if (path.equals("/account") || path.equals("/token")) {
-            chain.doFilter(request, response);
+        // Skip token validation for login, account creation, and h2-console endpoints
+        if (path.equals("/account") || path.equals("/token") || path.startsWith("/h2-console")) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        // Extract Authorization header
-        String authHeader = httpReq.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println(" Missing or invalid Authorization header.");
-            chain.doFilter(request, response);
+            System.out.println("Missing or invalid Authorization header.");
+            filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
-        try {
-            String email = jwtUtil.validateToken(token);
-            if (email == null) {
-                System.out.println("Invalid token: " + token);
-                chain.doFilter(request, response);
-                return;
-            }
+        String token = jwtUtil.extractToken(authHeader);
+        String email = jwtUtil.validateAndExtractEmail(token);
 
-            System.out.println("Authenticated user: " + email);
-
-            // Set Authentication in SecurityContextHolder
+        if (email != null) {
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
-
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpReq));
-            SecurityContextHolder.getContext().setAuthentication(authentication); // Set user in security context
-
-        } catch (Exception e) {
-            System.out.println("JWT validation failed: " + e.getMessage());
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
-        chain.doFilter(request, response);
+        filterChain.doFilter(request, response);
     }
 }

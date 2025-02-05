@@ -2,11 +2,11 @@ package com.example.ecommerce_backend.controller;
 
 import com.example.ecommerce_backend.model.Product;
 import com.example.ecommerce_backend.service.ProductService;
-import com.example.ecommerce_backend.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,7 +17,6 @@ import java.util.Optional;
 public class ProductController {
 
     private final ProductService productService;
-    private final JwtService jwtService;
 
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
@@ -32,13 +31,9 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createProduct(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestBody Product product) {
-
-        String email = jwtService.extractEmailFromHeader(authHeader);
+    public ResponseEntity<Map<String, Object>> createProduct(@RequestBody Product product) {
+        String email = getAuthenticatedEmail();
         Product createdProduct = productService.createProduct(email, product);
-
         return ResponseEntity.ok(Map.of(
                 "message", "Product created successfully",
                 "product", createdProduct
@@ -46,14 +41,10 @@ public class ProductController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> updateProduct(
-            @RequestHeader("Authorization") String authHeader,
-            @PathVariable Long id,
-            @RequestBody Product product) {
-
-        String email = jwtService.extractEmailFromHeader(authHeader);
+    public ResponseEntity<Map<String, Object>> updateProduct(@PathVariable Long id,
+                                                             @RequestBody Product product) {
+        String email = getAuthenticatedEmail();
         Product updatedProduct = productService.updateProduct(email, id, product);
-
         return ResponseEntity.ok(Map.of(
                 "message", "Product updated successfully",
                 "product", updatedProduct
@@ -61,13 +52,14 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteProduct(
-            @RequestHeader("Authorization") String authHeader,
-            @PathVariable Long id) {
-
-        String email = jwtService.extractEmailFromHeader(authHeader);
+    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long id) {
+        String email = getAuthenticatedEmail();
         productService.deleteProduct(email, id);
-
         return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
+    }
+
+    private String getAuthenticatedEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (String) authentication.getPrincipal();
     }
 }

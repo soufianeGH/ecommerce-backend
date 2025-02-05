@@ -1,13 +1,11 @@
 package com.example.ecommerce_backend.controller;
 
-
 import com.example.ecommerce_backend.model.User;
 import com.example.ecommerce_backend.repository.UserRepository;
 import com.example.ecommerce_backend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,8 +15,7 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
-    // A password encoder for hashing (in real production code).
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/account")
     public User createAccount(@RequestBody Map<String, String> payload) {
@@ -63,4 +60,3 @@ public class AuthController {
         throw new RuntimeException("Invalid credentials");
     }
 }
-

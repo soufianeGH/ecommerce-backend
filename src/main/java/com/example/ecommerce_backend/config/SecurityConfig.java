@@ -15,21 +15,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
+    private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configure(http))
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
+                .cors().and()
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/account", "/token").permitAll()  // Allow registration and login
-                        .requestMatchers("/h2-console/**").permitAll()      // Allow H2 Console
-                        .requestMatchers("/products/**").authenticated()    // Ensure only authenticated users can access products
-                        .anyRequest().authenticated()                      // Require authentication for all other endpoints
+                        .requestMatchers("/account", "/token", "/h2-console/**").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
-                .headers(headers -> headers.frameOptions().disable()); // Required for H2 Console
-
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .headers(headers -> headers.frameOptions().disable());
         return http.build();
     }
 

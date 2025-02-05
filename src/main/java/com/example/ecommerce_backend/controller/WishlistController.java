@@ -2,10 +2,10 @@ package com.example.ecommerce_backend.controller;
 
 import com.example.ecommerce_backend.model.Product;
 import com.example.ecommerce_backend.repository.ProductRepository;
-import com.example.ecommerce_backend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.*;
 
 @RestController
@@ -13,43 +13,40 @@ import java.util.*;
 @RequiredArgsConstructor
 public class WishlistController {
 
-    // For demonstration only: storing wishlist in memory
-    // Key: userEmail, Value: set of product IDs
+    // In-memory wishlist storage (for demonstration):
+    // Key: user email, Value: set of product IDs.
     private final Map<String, Set<Long>> wishlistStore = new HashMap<>();
 
     private final ProductRepository productRepository;
-    private final JwtUtil jwtUtil;
 
     @GetMapping
-    public List<Product> getWishlist(@RequestHeader("Authorization") String authHeader) {
-        String email = jwtUtil.extractEmailFromHeader(authHeader);
+    public List<Product> getWishlist() {
+        String email = getAuthenticatedEmail();
         Set<Long> productIds = wishlistStore.getOrDefault(email, new HashSet<>());
         return productRepository.findAllById(productIds);
     }
 
     @PostMapping("/{productId}")
-    public List<Product> addToWishlist(
-            @RequestHeader("Authorization") String authHeader,
-            @PathVariable Long productId) {
-
-        String email = jwtUtil.extractEmailFromHeader(authHeader);
-        Product product = productRepository.findById(productId)
+    public List<Product> addToWishlist(@PathVariable Long productId) {
+        String email = getAuthenticatedEmail();
+        // Validate that the product exists.
+        productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         wishlistStore.putIfAbsent(email, new HashSet<>());
-        wishlistStore.get(email).add(product.getId());
-        return getWishlist(authHeader);
+        wishlistStore.get(email).add(productId);
+        return getWishlist();
     }
 
     @DeleteMapping("/{productId}")
-    public List<Product> removeFromWishlist(
-            @RequestHeader("Authorization") String authHeader,
-            @PathVariable Long productId) {
-
-        String email = jwtUtil.extractEmailFromHeader(authHeader);
+    public List<Product> removeFromWishlist(@PathVariable Long productId) {
+        String email = getAuthenticatedEmail();
         wishlistStore.putIfAbsent(email, new HashSet<>());
         wishlistStore.get(email).remove(productId);
-        return getWishlist(authHeader);
+        return getWishlist();
+    }
+
+    private String getAuthenticatedEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (String) authentication.getPrincipal();
     }
 }
-

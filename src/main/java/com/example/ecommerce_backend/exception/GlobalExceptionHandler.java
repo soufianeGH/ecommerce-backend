@@ -17,7 +17,6 @@ public class GlobalExceptionHandler {
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("message", ex.getMessage());
         errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
@@ -27,8 +26,6 @@ public class GlobalExceptionHandler {
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("message", ex.getMessage());
         errorResponse.put("status", HttpStatus.FORBIDDEN.value());
-
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 }
-

@@ -5,7 +5,6 @@ import com.example.ecommerce_backend.model.Product;
 import com.example.ecommerce_backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -51,9 +50,9 @@ public class ProductService {
     }
 
     private void enforceAdminAccess(String email) {
+        // For demonstration, only a specific email is allowed admin actions.
         if (!"admin@admin.com".equalsIgnoreCase(email)) {
             throw new UnauthorizedAccessException("Only admin can modify products");
         }
     }
 }
-

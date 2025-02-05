@@ -42,6 +42,4 @@ public class Product {
     protected void onUpdate() {
         this.updatedAt = System.currentTimeMillis();
     }
-
-
 }
